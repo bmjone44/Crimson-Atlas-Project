@@ -47,9 +47,9 @@ Cons:
 - ...
 
 Use these rules:
-- 1 = 🔵
-- 2 = 🟢
-- 3 = 🟡
+- 1 = 🟢
+- 2 = 🟡
+- 3 = 🔴
 - 1–5 = 🔥 very easy
 - 6–10 = 🔥🔥 easy
 - 11–15 = 🔥🔥🔥 moderate
