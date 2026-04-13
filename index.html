@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Schedule Evaluator</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app">
+      <section class="card">
+        <h1>Class Schedule Evaluator</h1>
+        <p class="intro">
+          Add your classes, then generate a schedule evaluation in the required
+          format.
+        </p>
+        <div class="legend" aria-label="Rating guide">
+          <span class="legend-chip legend-easy">1</span>
+          <span class="legend-chip legend-medium">2</span>
+          <span class="legend-chip legend-hard">3</span>
+        </div>
+
+        <form id="schedule-form">
+          <div id="class-list" class="class-list"></div>
+
+          <div class="actions">
+            <button type="button" id="add-class-button">Add Class</button>
+            <button type="submit" class="primary">Generate Evaluation</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="card">
+        <h2>Formatted Output</h2>
+        <p class="intro">
+          The result below is ready to copy and uses the exact layout you asked
+          for.
+        </p>
+        <pre id="output" class="output">Add at least one class to see the evaluation.</pre>
+      </section>
+    </main>
+
+    <template id="class-template">
+      <article class="class-entry">
+        <div class="class-header">
+          <h3>Class</h3>
+          <button type="button" class="remove-button">Remove</button>
+        </div>
+
+        <label>
+          Class name
+          <input type="text" name="name" placeholder="BIO 101" required />
+        </label>
+
+        <label>
+          Credit hours
+          <input
+            type="number"
+            name="credits"
+            min="1"
+            step="1"
+            placeholder="3"
+            required
+          />
+        </label>
+
+        <label>
+          Optional syllabus text
+          <textarea
+            name="syllabus"
+            rows="4"
+            placeholder="Weekly quizzes, labs, final project..."
+          ></textarea>
+        </label>
+
+        <label>
+          Optional student review summary
+          <textarea
+            name="reviews"
+            rows="3"
+            placeholder="Students say lectures are clear but exams are tough."
+          ></textarea>
+        </label>
+      </article>
+    </template>
+
+    <script src="script.js"></script>
+  </body>
+</html>
