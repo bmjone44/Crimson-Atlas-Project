@@ -1,0 +1,16 @@
+Input : Class Schedule
+
+Output : Provide a response in the following format : 
+Rate the class difficulty of each class a 1 (labeled as a blue circle emoji), 2 (labeled as a green circle emoji), or 3 (labeled as a yellow circle emoji) based on the expected workload synthesized from syllabus information and student responses if possible. Only show the rating, and a one sentence summary for each class, and not any other information for each class. Put these ratings after the total time required and before the pro and con list.
+
+Add together the ratings of all the classes. Then provide a class rating based on the following scale). Show only the final rating and its label, not the calculations.
+
+1 - 5 —> 1 flame emoji (very easy)
+6 - 10 —> 2 flame emojis (easy)
+11 - 15 —> 3 flame emojis (moderate)
+16 - 20 —> 4 flame emojis (difficult)
+20 + —> 5 flame emojis (very difficult)
+
+Approximate each credit hour as 4 hours of work a week, and calculate the total time required by the schedule per week. Only provide the final answer, not the calculations
+
+Give a short list of the pros and cons of this schedule, up five bullet points for each.
