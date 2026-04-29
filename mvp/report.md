@@ -1,4 +1,3 @@
-[report (1).md](https://github.com/user-attachments/files/27185595/report.1.md)
 # MVP Report: ASU Schedule Difficulty Analyzer
 
 ## 1. Executive Summary
