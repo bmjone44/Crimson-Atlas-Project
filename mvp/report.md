@@ -1,4 +1,4 @@
-[report.md](https://github.com/user-attachments/files/27185494/report.md)
+[report (1).md](https://github.com/user-attachments/files/27185595/report.1.md)
 # MVP Report: ASU Schedule Difficulty Analyzer
 
 ## 1. Executive Summary
@@ -26,6 +26,64 @@ The MVP is a single self-contained HTML page that runs entirely in the browser. 
 - Print support for saving or sharing the final report.
 
 The MVP is designed to be lightweight, easy to open, and easy to demo from GitHub Pages or a local browser.
+
+### MVP Access and Demo Link
+
+Viewers can use the HTML page directly if it is hosted with GitHub Pages. If the file is only clicked from the normal GitHub repository file view, GitHub will usually show the HTML source code instead of running it as a webpage. For the best demo experience, the project should be deployed with GitHub Pages and the report should include the live link.
+
+Recommended file setup:
+
+```text
+/repo-root
+  index.html
+  /mvp
+    report.md
+```
+
+Recommended live demo link format after enabling GitHub Pages:
+
+```text
+https://YOUR-GITHUB-USERNAME.github.io/YOUR-REPO-NAME/
+```
+
+If the HTML file is not renamed to `index.html`, the live demo link should include the file name instead:
+
+```text
+https://YOUR-GITHUB-USERNAME.github.io/YOUR-REPO-NAME/asu_schedule_analyzer.html
+```
+
+### How to Use the MVP
+
+1. Open the live GitHub Pages link or open the HTML file locally in a browser.
+2. Enter classes in the quick-add box using the format `COURSE, credits`.
+
+   Example:
+
+   ```text
+   CSE 110, 3
+   MAT 265, 3
+   ENG 101, 3
+   BIO 181, 4
+   ```
+
+3. Click **Create class cards** to turn the class list into editable entries.
+4. Add optional syllabus notes or student-review notes if available.
+5. Select any workload flags that apply, such as lab, writing-heavy, project-heavy, or exam-heavy.
+6. Click **Analyze schedule**.
+7. Review the generated report, including total estimated weekly time, individual class ratings, overall schedule difficulty, pros, and cons.
+8. Use the print button to save or share the report as needed.
+
+### How to Deploy on GitHub Pages
+
+1. Add the HTML file to the repository. For the easiest link, rename it to `index.html` and place it in the root of the repo.
+2. Place this report at `/mvp/report.md`.
+3. Go to the repository on GitHub.
+4. Open **Settings**.
+5. Select **Pages** in the left sidebar.
+6. Under **Build and deployment**, choose **Deploy from a branch**.
+7. Select the `main` branch and the `/root` folder.
+8. Click **Save**.
+9. After GitHub finishes deploying, copy the GitHub Pages URL and add it to the report or README.
 
 ## 2. User & Use Case
 
