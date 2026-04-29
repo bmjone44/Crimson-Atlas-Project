@@ -1,3 +1,6 @@
+# Access the site with the link below 
+https://bmjone44.github.io/Crimson-Atlas-Project/
+
 # MVP Report: ASU Schedule Difficulty Analyzer
 
 ## 1. Executive Summary
