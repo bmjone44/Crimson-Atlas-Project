@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ASU Schedule Workload Evaluator</title>
+  <style>
+    :root {
+      --maroon: #8c1d40;
+      --gold: #ffc627;
+      --bg: #f7f3ee;
+      --panel: #ffffff;
+      --ink: #1f2933;
+      --muted: #667085;
+      --line: #e4dfd8;
+      --soft-maroon: #f8edf2;
+      --soft-gold: #fff8df;
+      --danger: #b42318;
+      --shadow: 0 18px 45px rgba(31, 41, 51, 0.11);
+      --radius: 22px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(255, 198, 39, 0.2), transparent 32rem),
+        linear-gradient(135deg, #fffaf0 0%, var(--bg) 45%, #f4eef1 100%);
+      min-height: 100vh;
+    }
+
+    .page {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 36px 0 56px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.25fr 0.75fr;
+      gap: 24px;
+      align-items: stretch;
+      margin-bottom: 24px;
+    }
+
+    .hero-card,
+    .stat-card,
+    .panel,
+    .result-panel {
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid rgba(140, 29, 64, 0.11);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+
+    .hero-card {
+      padding: 34px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-card::after {
+      content: "";
+      position: absolute;
+      width: 190px;
+      height: 190px;
+      border-radius: 50%;
+      background: rgba(255, 198, 39, 0.28);
+      right: -70px;
+      top: -70px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--maroon);
+      background: var(--soft-maroon);
+      border: 1px solid rgba(140, 29, 64, 0.16);
+      border-radius: 999px;
+      padding: 7px 12px;
+      font-size: 0.82rem;
+      font-weight: 750;
+      letter-spacing: 0.02em;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2.1rem, 5vw, 4.4rem);
+      line-height: 0.98;
+      letter-spacing: -0.055em;
+    }
+
+    .hero-card p {
+      max-width: 720px;
+      margin: 18px 0 0;
+      color: var(--muted);
+      font-size: 1.04rem;
+      line-height: 1.7;
+    }
+
+    .stat-card {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 100%;
+      background:
+        linear-gradient(150deg, rgba(140, 29, 64, 0.98), rgba(77, 19, 38, 0.98)),
+        var(--maroon);
+      color: #fff;
+    }
+
+    .stat-card h2 {
+      margin: 0 0 12px;
+      font-size: 1rem;
+      color: rgba(255, 255, 255, 0.78);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .stat-number {
+      font-size: 3.2rem;
+      line-height: 1;
+      font-weight: 850;
+      letter-spacing: -0.06em;
+      color: var(--gold);
+      margin: 0 0 10px;
+    }
+
+    .stat-card p {
+      margin: 0;
+      color: rgba(255, 255, 255, 0.82);
+      line-height: 1.6;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(360px, 0.9fr);
+      gap: 24px;
+      align-items: start;
+    }
+
+    .panel,
+    .result-panel {
+      padding: 24px;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: start;
+      margin-bottom: 20px;
+    }
+
+    .panel h2,
+    .result-panel h2 {
+      margin: 0;
+      font-size: 1.3rem;
+      letter-spacing: -0.025em;
+    }
+
+    .panel-subtitle {
+      margin: 6px 0 0;
+      color: var(--muted);
+      line-height: 1.5;
+      font-size: 0.95rem;
+    }
+
+    .quick-add {
+      background: var(--soft-gold);
+      border: 1px solid rgba(255, 198, 39, 0.5);
+      border-radius: 18px;
+      padding: 16px;
+      margin-bottom: 18px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.84rem;
+      font-weight: 750;
+      color: #344054;
+      margin-bottom: 7px;
+    }
+
+    textarea,
+    input,
+    select {
+      width: 100%;
+      border: 1px solid #d0d5dd;
+      border-radius: 14px;
+      background: #fff;
+      padding: 12px 13px;
+      font: inherit;
+      color: var(--ink);
+      outline: none;
+      transition: border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+    }
+
+    textarea:focus,
+    input:focus,
+    select:focus {
+      border-color: var(--maroon);
+      box-shadow: 0 0 0 4px rgba(140, 29, 64, 0.12);
+    }
+
+    textarea {
+      min-height: 88px;
+      resize: vertical;
+    }
+
+    .quick-add textarea {
+      min-height: 108px;
+    }
+
+    .helper {
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.45;
+      margin: 8px 0 0;
+    }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 13px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 999px;
+      padding: 11px 15px;
+      font: inherit;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform 140ms ease, box-shadow 140ms ease, opacity 140ms ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .primary {
+      background: var(--maroon);
+      color: #fff;
+      box-shadow: 0 10px 24px rgba(140, 29, 64, 0.24);
+    }
+
+    .secondary {
+      background: #fff;
+      color: var(--maroon);
+      border: 1px solid rgba(140, 29, 64, 0.2);
+    }
+
+    .ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--line);
+    }
+
+    .danger {
+      background: #fff5f5;
+      color: var(--danger);
+      border: 1px solid #fecdca;
+    }
+
+    .class-list {
+      display: grid;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .class-entry {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 16px;
+      position: relative;
+    }
+
+    .class-entry-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      gap: 12px;
+    }
+
+    .class-entry-title {
+      font-weight: 850;
+      color: var(--maroon);
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1.25fr 0.75fr;
+      gap: 12px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .field {
+      min-width: 0;
+    }
+
+    .checkbox-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 13px;
+    }
+
+    .chip-check {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: #344054;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .chip-check input {
+      width: auto;
+      accent-color: var(--maroon);
+    }
+
+    .actions {
+      position: sticky;
+      bottom: 18px;
+      background: rgba(255, 255, 255, 0.82);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(140, 29, 64, 0.1);
+      border-radius: 20px;
+      padding: 12px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      z-index: 2;
+    }
+
+    .actions .primary {
+      flex: 1;
+      min-width: 190px;
+    }
+
+    .result-panel {
+      position: sticky;
+      top: 22px;
+      min-height: 420px;
+    }
+
+    .empty-result {
+      min-height: 320px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      color: var(--muted);
+      border: 1px dashed #d0d5dd;
+      border-radius: 18px;
+      padding: 24px;
+      background: rgba(255, 255, 255, 0.55);
+    }
+
+    .report {
+      display: grid;
+      gap: 18px;
+    }
+
+    .report-section {
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 16px;
+    }
+
+    .report-section:last-child {
+      border-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .report h3 {
+      margin: 0 0 9px;
+      font-size: 0.95rem;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      color: var(--maroon);
+    }
+
+    .big-result {
+      font-size: 1.32rem;
+      font-weight: 850;
+      letter-spacing: -0.025em;
+      margin: 0;
+    }
+
+    .class-rating-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .class-rating {
+      background: #fbfaf8;
+      border: 1px solid #eee8df;
+      border-radius: 16px;
+      padding: 12px;
+      line-height: 1.5;
+    }
+
+    .class-rating strong {
+      color: #111827;
+    }
+
+    ul {
+      padding-left: 22px;
+      margin: 0;
+      color: #344054;
+      line-height: 1.58;
+    }
+
+    li + li {
+      margin-top: 7px;
+    }
+
+    .notice {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.5;
+    }
+
+    .print-only {
+      display: none;
+    }
+
+    @media (max-width: 940px) {
+      .hero,
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .result-panel {
+        position: static;
+      }
+    }
+
+    @media (max-width: 620px) {
+      .page {
+        width: min(100% - 22px, 1180px);
+        padding-top: 16px;
+      }
+
+      .hero-card,
+      .stat-card,
+      .panel,
+      .result-panel {
+        padding: 18px;
+        border-radius: 18px;
+      }
+
+      .grid-2,
+      .grid-3 {
+        grid-template-columns: 1fr;
+      }
+
+      .panel-header {
+        flex-direction: column;
+      }
+
+      .actions {
+        position: static;
+      }
+    }
+
+    @media print {
+      body {
+        background: #fff;
+      }
+
+      .hero,
+      .panel,
+      .notice,
+      .actions,
+      .empty-result {
+        display: none !important;
+      }
+
+      .page,
+      .layout,
+      .result-panel {
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        display: block;
+        box-shadow: none;
+        border: 0;
+      }
+
+      .result-panel {
+        position: static;
+      }
+
+      .print-only {
+        display: block;
+        margin-bottom: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <div class="hero-card">
+        <div class="eyebrow">ASU-focused workload evaluator</div>
+        <h1>Schedule Difficulty Analyzer</h1>
+        <p>
+          Enter ASU courses, credits, and any syllabus or student-review notes. The page estimates weekly time,
+          rates each class, and gives a serious pros-and-cons review of the full schedule.
+        </p>
+      </div>
+      <aside class="stat-card" aria-label="rating rules summary">
+        <div>
+          <h2>Rule of thumb</h2>
+          <div class="stat-number">4 hrs</div>
+          <p>Each credit hour is estimated as four hours of total weekly work, including class time, studying, assignments, labs, and prep.</p>
+        </div>
+        <p style="margin-top: 24px;"><strong>Default school:</strong> Arizona State University</p>
+      </aside>
+    </section>
+
+    <section class="layout">
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <h2>Build schedule</h2>
+            <p class="panel-subtitle">Use quick add for a hands-off start, then add syllabus or review notes only when you have them.</p>
+          </div>
+          <button class="secondary" type="button" id="example-button">Load example</button>
+        </div>
+
+        <div class="quick-add">
+          <label for="quick-add-text">Quick add classes</label>
+          <textarea id="quick-add-text" placeholder="Example:\nCSE 110, 3\nMAT 265, 3\nENG 101, 3\nBIO 181, 4"></textarea>
+          <p class="helper">Format each line as course name, credits. If credits are missing, the page assumes 3 credits.</p>
+          <div class="button-row">
+            <button class="primary" type="button" id="quick-add-button">Create class cards</button>
+            <button class="ghost" type="button" id="clear-quick-button">Clear quick add</button>
+          </div>
+        </div>
+
+        <div class="class-list" id="class-list"></div>
+
+        <div class="actions">
+          <button class="secondary" type="button" id="add-class-button">Add another class</button>
+          <button class="primary" type="button" id="analyze-button">Analyze schedule</button>
+          <button class="ghost" type="button" id="reset-button">Reset</button>
+        </div>
+      </div>
+
+      <aside class="result-panel" aria-live="polite">
+        <div class="print-only">
+          <h1>ASU Schedule Difficulty Report</h1>
+        </div>
+        <div class="panel-header">
+          <div>
+            <h2>Evaluation</h2>
+            <p class="panel-subtitle">The report follows the requested class-rating and schedule-rating format.</p>
+          </div>
+          <button class="secondary" type="button" id="print-button">Print</button>
+        </div>
+        <div id="output" class="empty-result">
+          Add classes, then select <strong>Analyze schedule</strong> to generate the report.
+        </div>
+        <p class="notice">This page runs entirely in your browser. It does not pull live ASU catalog data or send anything to a server.</p>
+      </aside>
+    </section>
+  </main>
+
+  <template id="class-template">
+    <article class="class-entry">
+      <div class="class-entry-header">
+        <div class="class-entry-title">Class</div>
+        <button class="danger remove-button" type="button">Remove</button>
+      </div>
+
+      <div class="grid-2">
+        <div class="field">
+          <label>Class name or code</label>
+          <input name="name" type="text" placeholder="CSE 110" autocomplete="off" />
+        </div>
+        <div class="field">
+          <label>Credits</label>
+          <input name="credits" type="number" min="0" step="0.5" placeholder="3" />
+        </div>
+      </div>
+
+      <div class="grid-3">
+        <div class="field">
+          <label>School</label>
+          <input name="school" type="text" placeholder="Arizona State University" autocomplete="off" />
+        </div>
+        <div class="field">
+          <label>Session</label>
+          <select name="session">
+            <option value="full">Full semester</option>
+            <option value="a">Session A / 7.5 week</option>
+            <option value="b">Session B / 7.5 week</option>
+            <option value="summer">Summer / compressed</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Format</label>
+          <select name="format">
+            <option value="in-person">In person</option>
+            <option value="online">Online / iCourse</option>
+            <option value="hybrid">Hybrid</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="checkbox-row" aria-label="class workload flags">
+        <label class="chip-check"><input name="lab" type="checkbox" /> Lab</label>
+        <label class="chip-check"><input name="writing" type="checkbox" /> Writing-heavy</label>
+        <label class="chip-check"><input name="project" type="checkbox" /> Project-heavy</label>
+        <label class="chip-check"><input name="exam" type="checkbox" /> Exam-heavy</label>
+      </div>
+
+      <div class="grid-2" style="margin-top: 12px;">
+        <div class="field">
+          <label>Syllabus notes</label>
+          <textarea name="syllabus" placeholder="Optional: weekly quizzes, lab reports, exams, major projects, attendance policy..."></textarea>
+        </div>
+        <div class="field">
+          <label>Student review notes</label>
+          <textarea name="reviews" placeholder="Optional: easy, tough grader, time-consuming homework, flexible, no exams..."></textarea>
+        </div>
+      </div>
+    </article>
+  </template>
+
+  <script>
+    const defaultSchool = "Arizona State University";
+
+    const stemPrefixes = new Set([
+      "ABE", "ABS", "ACO", "AEE", "AEP", "AES", "AMT", "APH", "AST", "BCH", "BME", "BIO", "BIS",
+      "BME", "CEE", "CHM", "CPI", "CSE", "DAT", "EED", "EEE", "EGR", "ENGR", "ENV", "FSE", "GIT",
+      "GLG", "IFT", "IEE", "MAE", "MAT", "MEE", "MIC", "NEU", "PHY", "PSY", "SER", "SOS", "STP"
+    ]);
+
+    const stemWords = [
+      "biology", "chemistry", "physics", "calculus", "algebra", "statistics", "computer", "programming",
+      "coding", "engineering", "data", "science", "lab", "anatomy", "physiology", "microbiology"
+    ];
+
+    const highDifficultyKeywords = [
+      "hard", "difficult", "heavy", "time consuming", "time-consuming", "strict", "tough", "demanding",
+      "weekly quiz", "weekly quizzes", "quiz every", "exam", "exams", "midterm", "final exam", "lab report",
+      "lab reports", "long lab", "project", "projects", "coding", "programming", "proof", "proofs", "calculus",
+      "organic", "physics", "chemistry", "memorization", "no curve", "weed out", "mandatory attendance",
+      "research paper", "papers", "presentation", "presentations", "discussion posts"
+    ];
+
+    const lowDifficultyKeywords = [
+      "easy", "light", "low workload", "manageable", "simple", "straightforward", "flexible", "open note",
+      "open-note", "open book", "open-book", "extra credit", "no exams", "attendance optional", "low time",
+      "not much homework", "minimal homework", "relaxed", "clear grading"
+    ];
+
+    const classList = document.getElementById("class-list");
+    const classTemplate = document.getElementById("class-template");
+    const output = document.getElementById("output");
+
+    document.getElementById("add-class-button").addEventListener("click", () => addClassCard());
+    document.getElementById("analyze-button").addEventListener("click", analyzeSchedule);
+    document.getElementById("reset-button").addEventListener("click", resetPage);
+    document.getElementById("print-button").addEventListener("click", () => window.print());
+    document.getElementById("quick-add-button").addEventListener("click", quickAddClasses);
+    document.getElementById("clear-quick-button").addEventListener("click", () => {
+      document.getElementById("quick-add-text").value = "";
+    });
+    document.getElementById("example-button").addEventListener("click", loadExample);
+
+    function addClassCard(defaultValues = {}) {
+      const fragment = classTemplate.content.cloneNode(true);
+      const entry = fragment.querySelector(".class-entry");
+
+      entry.querySelector('input[name="name"]').value = defaultValues.name || "";
+      entry.querySelector('input[name="credits"]').value = defaultValues.credits ?? "";
+      entry.querySelector('input[name="school"]').value = defaultValues.school || "";
+      entry.querySelector('select[name="session"]').value = defaultValues.session || "full";
+      entry.querySelector('select[name="format"]').value = defaultValues.format || "in-person";
+      entry.querySelector('input[name="lab"]').checked = Boolean(defaultValues.lab);
+      entry.querySelector('input[name="writing"]').checked = Boolean(defaultValues.writing);
+      entry.querySelector('input[name="project"]').checked = Boolean(defaultValues.project);
+      entry.querySelector('input[name="exam"]').checked = Boolean(defaultValues.exam);
+      entry.querySelector('textarea[name="syllabus"]').value = defaultValues.syllabus || "";
+      entry.querySelector('textarea[name="reviews"]').value = defaultValues.reviews || "";
+
+      entry.querySelector(".remove-button").addEventListener("click", () => {
+        entry.remove();
+        renumberClassCards();
+        if (classList.children.length === 0) addClassCard();
+      });
+
+      classList.appendChild(fragment);
+      renumberClassCards();
+    }
+
+    function renumberClassCards() {
+      Array.from(classList.querySelectorAll(".class-entry-title")).forEach((title, index) => {
+        title.textContent = `Class ${index + 1}`;
+      });
+    }
+
+    function quickAddClasses() {
+      const text = document.getElementById("quick-add-text").value.trim();
+      if (!text) return;
+
+      const parsed = text
+        .split(/\n+/)
+        .map(line => parseQuickLine(line))
+        .filter(Boolean);
+
+      if (parsed.length === 0) return;
+
+      classList.innerHTML = "";
+      parsed.forEach(course => addClassCard(course));
+    }
+
+    function parseQuickLine(line) {
+      const clean = line.replace(/^[-*•\s]+/, "").trim();
+      if (!clean) return null;
+
+      const creditMatch = clean.match(/(?:,|\s|-)(\d+(?:\.5)?)(?:\s*(?:credits?|cr\.?))?\s*$/i);
+      let credits = 3;
+      let name = clean;
+
+      if (creditMatch) {
+        credits = Number(creditMatch[1]);
+        name = clean.slice(0, creditMatch.index).replace(/[,-]\s*$/, "").trim();
+      }
+
+      return { name, credits };
+    }
+
+    function collectClasses() {
+      return Array.from(classList.querySelectorAll(".class-entry"))
+        .map(entry => {
+          const name = entry.querySelector('input[name="name"]').value.trim();
+          const credits = Number(entry.querySelector('input[name="credits"]').value) || 0;
+          const school = entry.querySelector('input[name="school"]').value.trim() || defaultSchool;
+          const session = entry.querySelector('select[name="session"]').value;
+          const format = entry.querySelector('select[name="format"]').value;
+          const syllabus = entry.querySelector('textarea[name="syllabus"]').value.trim();
+          const reviews = entry.querySelector('textarea[name="reviews"]').value.trim();
+          const flags = {
+            lab: entry.querySelector('input[name="lab"]').checked,
+            writing: entry.querySelector('input[name="writing"]').checked,
+            project: entry.querySelector('input[name="project"]').checked,
+            exam: entry.querySelector('input[name="exam"]').checked
+          };
+
+          return { name, credits, school, session, format, syllabus, reviews, flags };
+        })
+        .filter(course => course.name && course.credits > 0);
+    }
+
+    function analyzeSchedule() {
+      const courses = collectClasses();
+
+      if (courses.length === 0) {
+        showEmpty("Add at least one class with a name and credit amount to generate the report.");
+        return;
+      }
+
+      const evaluated = courses.map(evaluateCourse);
+      const totalCredits = courses.reduce((sum, course) => sum + course.credits, 0);
+      const totalHours = Math.round(totalCredits * 4);
+      const ratingSum = evaluated.reduce((sum, course) => sum + course.rating, 0);
+      const overall = getOverallRating(ratingSum);
+      const pros = buildPros(courses, evaluated, totalCredits, totalHours);
+      const cons = buildCons(courses, evaluated, totalCredits, totalHours);
+
+      renderReport({ totalHours, evaluated, overall, pros, cons });
+    }
+
+    function evaluateCourse(course) {
+      let rating = getBaseRating(course.credits);
+      const text = `${course.name} ${course.syllabus} ${course.reviews}`.toLowerCase();
+      const prefix = getCoursePrefix(course.name);
+      const isASU = course.school.toLowerCase().includes("arizona state") || course.school.toLowerCase() === "asu";
+      const isStem = isLikelyStem(course.name, prefix, isASU);
+      const highSignal = hasAny(text, highDifficultyKeywords) || course.flags.lab || course.flags.project || course.flags.exam || isCompressed(course.session);
+      const lowSignal = hasAny(text, lowDifficultyKeywords);
+
+      if (isStem || highSignal) rating += 1;
+      if (course.flags.writing && course.credits >= 3) rating += 1;
+      if (course.format === "online" && course.credits >= 3) rating += 1;
+      if (lowSignal) rating -= 1;
+
+      rating = clamp(rating, 1, 4);
+
+      return {
+        ...course,
+        rating,
+        emoji: getRatingEmoji(rating),
+        isStem,
+        highSignal,
+        lowSignal,
+        summary: buildCourseSummary(course, rating, isStem, highSignal, lowSignal)
+      };
+    }
+
+    function getBaseRating(credits) {
+      if (credits <= 2) return 1;
+      if (credits === 3) return 2;
+      return 3;
+    }
+
+    function getCoursePrefix(name) {
+      const match = name.trim().toUpperCase().match(/^([A-Z]{2,4})\s*\d{2,3}/);
+      return match ? match[1] : "";
+    }
+
+    function isLikelyStem(name, prefix, isASU) {
+      const lowerName = name.toLowerCase();
+      if (isASU && stemPrefixes.has(prefix)) return true;
+      return stemWords.some(word => lowerName.includes(word));
+    }
+
+    function hasAny(text, keywords) {
+      return keywords.some(keyword => text.includes(keyword));
+    }
+
+    function isCompressed(session) {
+      return session === "a" || session === "b" || session === "summer";
+    }
+
+    function getRatingEmoji(rating) {
+      return { 1: "🔵", 2: "🟢", 3: "🟡", 4: "🔴" }[rating];
+    }
+
+    function buildCourseSummary(course, rating, isStem, highSignal, lowSignal) {
+      const name = course.name;
+      if (lowSignal && rating <= 2) {
+        return `${name} appears manageable because the available notes suggest a lighter or more flexible workload.`;
+      }
+      if (rating === 4) {
+        return `${name} appears high intensity because its credits, ASU STEM classification, format, or workload notes point to a demanding class.`;
+      }
+      if (rating === 3) {
+        if (isStem) return `${name} appears heavier than average because ASU STEM courses usually require consistent practice outside of class.`;
+        if (highSignal) return `${name} appears heavier than average because the notes suggest exams, projects, labs, or compressed pacing.`;
+        return `${name} appears heavier than average because of its credit load.`;
+      }
+      if (rating === 2) {
+        return `${name} appears to have an average workload with a steady but manageable weekly time commitment.`;
+      }
+      return `${name} appears to be a light workload based on its credit load and available notes.`;
+    }
+
+    function getOverallRating(sum) {
+      if (sum <= 5) return { label: "Very Easy", display: "🔥💧💧 Very Easy" };
+      if (sum <= 10) return { label: "Easy", display: "🔥🔥💧 Easy" };
+      if (sum <= 15) return { label: "Moderate", display: "🔥🔥🔥 Moderate" };
+      if (sum <= 20) return { label: "Difficult", display: "🔥🔥🔥🔥 Difficult" };
+      return { label: "Very Difficult", display: "🔥🔥🔥🔥🔥 Very Difficult" };
+    }
+
+    function buildPros(courses, evaluated, totalCredits, totalHours) {
+      const pros = [];
+      const stemCount = evaluated.filter(course => course.isStem).length;
+      const redCount = evaluated.filter(course => course.rating === 4).length;
+      const lightCount = evaluated.filter(course => course.rating <= 2).length;
+      const hasNonStem = stemCount < courses.length;
+      const hasFullSemesterMostly = courses.filter(course => course.session === "full").length >= Math.ceil(courses.length / 2);
+
+      if (totalCredits <= 15) pros.push("The total credit load is within a commonly manageable full-time range.");
+      if (totalHours <= 60) pros.push("The estimated weekly time commitment is demanding but still realistic with strong planning.");
+      if (lightCount > 0) pros.push("At least one class appears to provide a lighter workload buffer within the schedule.");
+      if (hasNonStem && stemCount > 0) pros.push("The schedule has some balance between technical and non-technical coursework.");
+      if (redCount === 0) pros.push("No class reached the highest individual difficulty rating based on the entered information.");
+      if (hasFullSemesterMostly) pros.push("Most classes appear to follow a full-semester pace rather than a compressed session.");
+
+      return limitList(pros, 5, ["The schedule contains enough information to produce a basic workload estimate."]);
+    }
+
+    function buildCons(courses, evaluated, totalCredits, totalHours) {
+      const cons = [];
+      const stemCount = evaluated.filter(course => course.isStem).length;
+      const redCount = evaluated.filter(course => course.rating === 4).length;
+      const compressedCount = courses.filter(course => isCompressed(course.session)).length;
+      const onlineCount = courses.filter(course => course.format === "online").length;
+      const workloadFlagCount = courses.filter(course => course.flags.lab || course.flags.project || course.flags.exam || course.flags.writing).length;
+
+      if (totalCredits >= 16) cons.push("The credit load is high and may leave limited room for unexpected assignments or exams.");
+      if (totalHours > 60) cons.push("The estimated weekly time requirement is very high and could be difficult with work or major extracurricular commitments.");
+      if (stemCount >= 2) cons.push("Multiple ASU STEM courses may create a heavier problem-solving and study load in the same term.");
+      if (redCount > 0) cons.push("At least one class is rated at the highest difficulty level and may require early planning.");
+      if (compressedCount > 0) cons.push("Compressed Session A, Session B, or summer courses can make the workload feel faster and less forgiving.");
+      if (onlineCount >= 2) cons.push("Multiple online courses may require strong self-management to avoid falling behind.");
+      if (workloadFlagCount >= 2) cons.push("Several classes include workload flags such as labs, writing, projects, or exams.");
+
+      return limitList(cons, 5, ["The main risk is uncertainty because syllabus details and student-review notes are limited."]);
+    }
+
+    function limitList(items, max, fallback) {
+      const unique = Array.from(new Set(items));
+      return (unique.length ? unique : fallback).slice(0, max);
+    }
+
+    function renderReport(report) {
+      output.className = "report";
+      output.innerHTML = "";
+
+      output.appendChild(section("Total Estimated Weekly Time", paragraph(`Approximately ${report.totalHours} hours per week.`, "big-result")));
+
+      const ratings = document.createElement("div");
+      ratings.className = "class-rating-list";
+      report.evaluated.forEach(course => {
+        const item = document.createElement("div");
+        item.className = "class-rating";
+        item.innerHTML = `<strong>${course.emoji} ${course.rating} — ${escapeHTML(course.name)}:</strong> ${escapeHTML(course.summary)}`;
+        ratings.appendChild(item);
+      });
+      output.appendChild(section("Individual Class Ratings", ratings));
+
+      output.appendChild(section("Overall Schedule Rating", paragraph(report.overall.display, "big-result")));
+      output.appendChild(section("Pros", bulletList(report.pros)));
+      output.appendChild(section("Cons", bulletList(report.cons)));
+    }
+
+    function section(title, content) {
+      const wrapper = document.createElement("section");
+      wrapper.className = "report-section";
+      const heading = document.createElement("h3");
+      heading.textContent = title;
+      wrapper.appendChild(heading);
+      wrapper.appendChild(content);
+      return wrapper;
+    }
+
+    function paragraph(text, className = "") {
+      const p = document.createElement("p");
+      if (className) p.className = className;
+      p.textContent = text;
+      return p;
+    }
+
+    function bulletList(items) {
+      const ul = document.createElement("ul");
+      items.forEach(text => {
+        const li = document.createElement("li");
+        li.textContent = text;
+        ul.appendChild(li);
+      });
+      return ul;
+    }
+
+    function showEmpty(message) {
+      output.className = "empty-result";
+      output.textContent = message;
+    }
+
+    function escapeHTML(text) {
+      return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function clamp(value, min, max) {
+      return Math.min(max, Math.max(min, value));
+    }
+
+    function resetPage() {
+      classList.innerHTML = "";
+      document.getElementById("quick-add-text").value = "";
+      addClassCard();
+      showEmpty("Add classes, then select Analyze schedule to generate the report.");
+    }
+
+    function loadExample() {
+      classList.innerHTML = "";
+      addClassCard({
+        name: "CSE 110",
+        credits: 3,
+        project: true,
+        syllabus: "Weekly programming assignments and exams.",
+        reviews: "Students say the course is manageable but requires consistent practice."
+      });
+      addClassCard({
+        name: "MAT 265",
+        credits: 3,
+        exam: true,
+        syllabus: "Calculus course with regular homework and exams.",
+        reviews: "Students report that it is time-consuming if you fall behind."
+      });
+      addClassCard({
+        name: "ENG 101",
+        credits: 3,
+        writing: true,
+        syllabus: "Writing assignments, drafting, and revision work.",
+        reviews: "Workload is steady but clear and manageable."
+      });
+      addClassCard({
+        name: "COM 100",
+        credits: 3,
+        reviews: "Generally straightforward with presentations and discussion assignments."
+      });
+      analyzeSchedule();
+    }
+
+    addClassCard();
+  </script>
+</body>
+</html>
